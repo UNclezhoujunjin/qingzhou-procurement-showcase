@@ -1,0 +1,32 @@
+# Fail closed: cloud deployments must never silently use a local H2 file or demo accounts.
+server:
+  address: 0.0.0.0
+  port: ${PORT:10000}
+  forward-headers-strategy: framework
+  tomcat:
+    threads:
+      max: 30
+      min-spare: 2
+  compression:
+    enabled: true
+    mime-types: text/html,text/css,application/javascript,application/json,image/svg+xml
+  servlet:
+    session:
+      cookie:
+        secure: true
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 3
+      minimum-idle: 0
+      idle-timeout: 10000
+      max-lifetime: 300000
+      keepalive-time: 0
+      connection-timeout: 30000
+app:
+  demo: false
+  runtime-mode: cloud

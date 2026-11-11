@@ -1,0 +1,954 @@
+{
+  "info": {
+    "name": "轻舟项目接口测试（逐条执行）",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "先选择导入环境并填写本地密码。先运行登录前CSRF、登录、登录后CSRF。不要直接运行整个集合：写操作是独立场景，需逐条设置账号、ID、版本与新请求标识。未上传新版时 browse/drafts/close 等接口可能不存在。"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "item": [
+    {
+      "name": "1 登录与读取（按顺序开始）",
+      "item": [
+        {
+          "name": "01 获取 CSRF（登录前）",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/csrf",
+            "description": "01 获取 CSRF（登录前）"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){pm.environment.set(\"csrfToken\",pm.response.json().token);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 登录（填写环境中的账号密码）",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "02 登录（填写环境中的账号密码）",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{username}}",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "{{password}}",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 重新获取 CSRF（登录后必须执行）",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/csrf",
+            "description": "03 重新获取 CSRF（登录后必须执行）"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){pm.environment.set(\"csrfToken\",pm.response.json().token);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 查看当前账号和角色",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/me",
+            "description": "04 查看当前账号和角色"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 工作台统计",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/overview",
+            "description": "05 工作台统计"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "06 分页查询启用商品，保存测试商品 ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/browse/products?page=1&size=10&active=true",
+            "description": "06 分页查询启用商品，保存测试商品 ID"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){const p=pm.response.json().items[0];if(p){pm.environment.set(\"productId\",p.id);pm.environment.set(\"productVersion\",p.version);pm.environment.set(\"productSku\",p.sku);pm.environment.set(\"stockVersion\",p.stock_version);}}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "06B 查询可审批人员（选择 ID 填 approverId）",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/requests/approvers"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应成功\",()=>pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "07 按关键词搜索商品",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/browse/products?page=1&size=10&q={{keyword}}",
+            "description": "07 按关键词搜索商品"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "08 分页查看采购申请（按账号权限）",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/browse/requests?page=1&size=10",
+            "description": "08 分页查看采购申请（按账号权限）"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "09 查看申请详情并更新版本",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/requests/{{requestId}}",
+            "description": "09 查看申请详情并更新版本"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200)pm.environment.set(\"requestVersion\",pm.response.json().version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10 分页查看订单（管理员/采购/仓库）",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/browse/orders?page=1&size=10",
+            "description": "10 分页查看订单（管理员/采购/仓库）"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "11 查看订单详情并更新版本、明细 ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/orders/{{orderId}}",
+            "description": "11 查看订单详情并更新版本、明细 ID"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){const o=pm.response.json();pm.environment.set(\"orderVersion\",o.version);if(o.lines?.length)pm.environment.set(\"orderLineId\",o.lines[0].id);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "12 查询本人操作提交结果",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/operations/{{requestKey}}",
+            "description": "12 查询本人操作提交结果"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "13 我的草稿",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/drafts",
+            "description": "13 我的草稿"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "14 通知列表",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/notifications?page=1&size=20",
+            "description": "14 通知列表"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2 写操作场景（不要整组运行）",
+      "item": [
+        {
+          "name": "A 新建采购申请（员工/主管/管理员）",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/requests",
+            "description": "A 新建采购申请（员工/主管/管理员）",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lines\": [\n    {\n      \"productId\": {{productId}},\n      \"quantity\": 4\n    }\n  ],\n  \"reason\": \"Postman 测试采购，请使用测试商品\",\n  \"approverId\": {{approverId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){const r=pm.response.json();pm.environment.set(\"requestId\",r.id);pm.environment.set(\"requestVersion\",r.version);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B 审批通过（换成非申请人的主管/管理员账号登录）",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/requests/{{requestId}}/review",
+            "description": "B 审批通过（换成非申请人的主管/管理员账号登录）",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"APPROVED\",\n  \"note\": \"Postman 测试审批\",\n  \"version\": {{requestVersion}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C 按供应商生成订单（采购/管理员）",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/requests/{{requestId}}/order",
+            "description": "C 按供应商生成订单（采购/管理员）"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){const r=pm.response.json(),o=r.orders?.[0]||r;pm.environment.set(\"orderId\",o.id);pm.environment.set(\"orderVersion\",o.version);if(o.lines?.length)pm.environment.set(\"orderLineId\",o.lines[0].id);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "D 分批收货 2 件（仓库/管理员，先读取订单最新版本）",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orders/{{orderId}}/receive",
+            "description": "D 分批收货 2 件（仓库/管理员，先读取订单最新版本）",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lines\": [\n    {\n      \"orderLineId\": \"{{orderLineId}}\",\n      \"quantity\": 2\n    }\n  ],\n  \"reason\": \"Postman 测试首批收货\",\n  \"version\": {{orderVersion}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E 采购退货 1 件（先读取订单最新版本）",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orders/{{orderId}}/return",
+            "description": "E 采购退货 1 件（先读取订单最新版本）",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lines\": [\n    {\n      \"orderLineId\": \"{{orderLineId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"reason\": \"Postman 测试退货\",\n  \"version\": {{orderVersion}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "F 撤回申请（仅申请人且仍待审批，使用另一张测试申请）",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/requests/{{requestId}}/withdraw",
+            "description": "F 撤回申请（仅申请人且仍待审批，使用另一张测试申请）",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Postman 测试撤回\",\n  \"version\": {{requestVersion}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "G 取消订单/终止余量（采购/管理员，先读取订单最新版本）",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orders/{{orderId}}/close",
+            "description": "G 取消订单/终止余量（采购/管理员，先读取订单最新版本）",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Postman 测试结束交付\",\n  \"version\": {{orderVersion}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "H 停用测试商品（采购/管理员）",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/browse/products/{{productId}}/state",
+            "description": "H 停用测试商品（采购/管理员）",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": false,\n  \"version\": {{productVersion}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "I 恢复测试商品（先读取商品最新版本）",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/browse/products/{{productId}}/state",
+            "description": "I 恢复测试商品（先读取商品最新版本）",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": true,\n  \"version\": {{productVersion}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "J 保存草稿（固定草稿 ID 可重试；内容只作为草稿）",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/drafts/{{draftId}}",
+            "description": "J 保存草稿（固定草稿 ID 可重试；内容只作为草稿）",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payload\": \"{\\\"approverId\\\": {{approverId}}, \\\"lines\\\": [{\\\"productId\\\": \\\"{{productId}}\\\", \\\"quantity\\\": 1}], \\\"reason\\\": \\\"Postman 草稿示例，提交前修改商品 ID\\\"}\",\n  \"version\": {{draftVersion}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200)pm.environment.set(\"draftVersion\",pm.response.json().version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "K 提交草稿（先检查草稿中的商品 ID）",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/drafts/{{draftId}}/submit",
+            "description": "K 提交草稿（先检查草稿中的商品 ID）",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"version\": {{draftVersion}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "L 退出登录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/logout",
+            "description": "L 退出登录"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3 异常断言（按条件执行）",
+      "item": [
+        {
+          "name": "N1 缺少 CSRF 的写请求应拒绝（已登录）",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/requests",
+            "description": "N1 缺少 CSRF 的写请求应拒绝（已登录）",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lines\": [\n    {\n      \"productId\": {{productId}},\n      \"quantity\": 1\n    }\n  ],\n  \"reason\": \"缺少 CSRF 的测试\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "N2 负数量应拒绝（已登录）",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/requests",
+            "description": "N2 负数量应拒绝（已登录）",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lines\": [\n    {\n      \"productId\": {{productId}},\n      \"quantity\": -1\n    }\n  ],\n  \"reason\": \"非法数量测试\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "N3 非法版本结束订单应拒绝（采购/管理员、有效订单）",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orders/{{orderId}}/close",
+            "description": "N3 非法版本结束订单应拒绝（采购/管理员、有效订单）",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"旧版本测试\",\n  \"version\": 2147483647\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "N4 退出登录后访问应为 401（先执行退出）",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/me",
+            "description": "N4 退出登录后访问应为 401（先执行退出）"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"响应状态码\",()=>pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+.git
+.cache
+.codex
+.agents
+**/node_modules
+**/dist
+**/target
+**/data
+**/backups
+**/*.log
+**/.env
+**/.env.*
+**/*.mv.db
+**/*.zip
+**/*.sha256
+docs/*.png

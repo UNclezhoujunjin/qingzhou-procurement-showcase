@@ -1,0 +1,26 @@
+# Uses only Render's free web service. PostgreSQL is supplied separately by Neon.
+# No Render database, persistent disk, paid cron job, or paid Worker is provisioned here.
+services:
+  - type: web
+    name: qingzhou-procurement
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /actuator/health
+    domains:
+      - erp.example.com
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: cloud
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: DB_URL
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
